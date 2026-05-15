@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <title>EduFiola - Znajdź swojego korepetytora</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            background-color: #c9b8e0; 
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding-bottom: 80px;
+        }
+        
+        .top-bar {
+            position: fixed; top: 0; left: 0; width: 100%;
+            background: #6b3fa0; padding: 12px 16px;
+            display: flex; align-items: center; justify-content: space-between;
+            z-index: 100; box-shadow: 0 2px 10px rgba(107, 63, 160, 0.3);
+        }
+        
+        .top-bar-left { display: flex; align-items: center; gap: 10px; }
+        .top-bar-logo { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
+        .top-bar-title { font-size: 20px; font-weight: 800; color: white; letter-spacing: 0.5px; }
+        .top-bar-title .edu { color: #d4c4e8; }
+        .top-bar-title .fiola { color: #a8e6a8; }
+        .top-bar-bell { width: 28px; height: 28px; cursor: pointer; filter: brightness(0) invert(1); }
+        
+        .filter-top-bar {
+            position: fixed; top: 0; left: 0; width: 100%;
+            background: #6b3fa0; padding: 12px 16px;
+            display: flex; align-items: center; justify-content: space-between;
+            z-index: 101; box-shadow: 0 2px 10px rgba(107, 63, 160, 0.3);
+        }
+        
+        .filter-back { color: #1a1a2e; font-size: 16px; font-weight: 700; cursor: pointer; background: none; border: none; }
+        .filter-reset { color: #d4c4e8; font-size: 14px; font-weight: 600; cursor: pointer; background: none; border: none; }
+        
+        .bottom-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: #c8c8c8; padding: 10px 16px;
+            display: flex; justify-content: space-around; align-items: center;
+            z-index: 100; box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .bottom-bar-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
+        .bottom-bar-item img { width: 24px; height: 24px; }
+        .bottom-bar-item span { font-size: 10px; color: #6b7280; font-weight: 600; }
+        .bottom-bar-item.aktywny span { color: #6b3fa0; }
+        
+        .main-content { margin-top: 80px; padding: 20px 16px; }
+        
+        .filter-page {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; background-color: #c9b8e0;
+            z-index: 99; overflow-y: auto; padding-top: 64px;
+        }
+        
+        .filter-page.aktywna { display: block; }
+        .filter-page-content { padding: 20px 16px; }
+        
+        .filter-frame {
+            background: white; border-radius: 16px;
+            padding: 16px; margin-bottom: 20px;
+        }
+        
+        .filter-label { font-size: 14px; font-weight: 700; color: #1a1a2e; margin-bottom: 10px; }
+        
+        .filter-select-box {
+            display: flex; align-items: center; justify-content: space-between;
+            cursor: pointer; padding: 8px 0;
+        }
+        
+        .filter-select-left { display: flex; align-items: center; gap: 10px; }
+        .filter-select-left img { width: 24px; height: 24px; }
+        .filter-select-left span { font-size: 15px; font-weight: 600; color: #1a1a2e; }
+        .filter-select-arrow { font-size: 16px; color: #6b3fa0; }
+        
+        .filter-dropdown { display: none; margin-top: 8px; border-top: 1px solid #e0e0e0; padding-top: 8px; }
+        .filter-dropdown.otwarty { display: block; }
+        
+        .filter-dropdown-item {
+            padding: 10px 0; display: flex; align-items: center;
+            gap: 10px; cursor: pointer; font-size: 14px; color: #1a1a2e;
+        }
+        .filter-dropdown-item img { width: 20px; height: 20px; }
+        
+        .price-range-display {
+            display: flex; justify-content: space-between;
+            margin-bottom: 16px; font-size: 14px; font-weight: 600; color: #1a1a2e;
+        }
+        
+        .range-slider-container {
+            position: relative; height: 40px;
+            margin-bottom: 16px; display: flex; align-items: center;
+        }
+        
+        .range-slider-track {
+            position: absolute; width: 100%; height: 6px;
+            background: #d4c4e8; border-radius: 3px;
+        }
+        
+        .range-slider-fill {
+            position: absolute; height: 6px;
+            background: #6b3fa0; border-radius: 3px;
+        }
+        
+        .range-slider-thumb {
+            position: absolute; width: 26px; height: 26px;
+            background: #6b3fa0; border-radius: 50%;
+            top: -10px; cursor: pointer; z-index: 2;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        
+        .price-presets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        
+        .price-preset-btn {
+            padding: 10px 6px; border-radius: 10px;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            border: none; text-align: center; transition: all 0.2s;
+            background: #e0d8e8; color: #6b3fa0;
+        }
+        .price-preset-btn.aktywny { background: #6b3fa0; color: white; }
+        
+        .mode-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        
+        .mode-btn {
+            padding: 12px 6px; border-radius: 10px;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            border: none; text-align: center; transition: all 0.2s;
+            background: #e0d8e8; color: #6b3fa0;
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+        }
+        .mode-btn img { width: 20px; height: 20px; }
+        .mode-btn.aktywny { background: #6b3fa0; color: white; }
+        .mode-btn.aktywny img { filter: brightness(0) invert(1); }
+        
+        .hero-line1 { font-size: 32px; font-weight: 900; color: #1a1a2e; line-height: 1.2; }
+        .hero-line2 { font-size: 32px; font-weight: 900; color: #6b3fa0; line-height: 1.2; }
+        .hero-description { font-size: 14px; color: #6b7280; margin-top: 12px; line-height: 1.5; }
+        
+        .carousel-container { position: relative; width: 100%; overflow: hidden; border-radius: 20px; margin-top: 20px; }
+        .carousel-track { display: flex; transition: transform 0.4s ease-in-out; }
+        .carousel-slide { min-width: 100%; height: 180px; background: #6b3fa0; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; font-weight: 600; }
+        .carousel-dots { display: flex; justify-content: center; gap: 10px; margin-top: 16px; }
+        .carousel-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(107, 63, 160, 0.3); cursor: pointer; transition: all 0.3s; }
+        .carousel-dot.aktywna { background: #6b3fa0; width: 28px; border-radius: 10px; }
+        .carousel-arrow { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(107, 63, 160, 0.7); color: white; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 20px; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; }
+        .carousel-arrow.left { left: 10px; } .carousel-arrow.right { right: 10px; }
+
+        .filter-row { display: flex; gap: 8px; margin-top: 20px; align-items: center; }
+        .filter-btn { background: #b0a0c0; color: white; border: none; padding: 10px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; flex: 1; text-align: center; }
+        .filter-icon { width: 40px; height: 40px; background: #6b3fa0; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+        .filter-icon img { width: 24px; height: 24px; filter: brightness(0) invert(1); }
+        
+        .results-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; flex-wrap: wrap; gap: 8px; }
+        .results-count { font-size: 14px; font-weight: 700; color: #1a1a2e; }
+        .results-count span { color: #6b3fa0; }
+        .sort-btn { background: #c9b8e0; border: 1px solid #6b3fa0; color: #6b3fa0; padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; }
+
+        .korepetytor-card { background: #b5d6b8; border-radius: 16px; padding: 16px; margin-top: 20px; display: flex; gap: 12px; }
+        .korepetytor-photo { width: 100px; height: 120px; border-radius: 12px; object-fit: cover; flex-shrink: 0; }
+        .korepetytor-info { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .korepetytor-name { font-size: 18px; font-weight: 700; color: #1a1a2e; }
+        .korepetytor-subject { font-size: 14px; color: #6b3fa0; font-weight: 600; }
+        .korepetytor-city { font-size: 12px; color: #6b7280; margin-top: 2px; }
+        .korepetytor-rating { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #1a1a2e; margin-top: 4px; }
+        .star { color: #f5c518; font-size: 16px; }
+        .rating-number { font-weight: 700; }
+        .rating-reviews { color: #6b7280; }
+        .korepetytor-price-box { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+        .price-amount { font-size: 22px; font-weight: 900; color: #1a1a2e; }
+        .price-duration { font-size: 12px; color: #6b7280; }
+        .contact-btn { background: #22c55e; color: white; border: none; padding: 10px 18px; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<!-- ГЛАВНАЯ СТРАНИЦА -->
+<div class="top-bar" id="glownyTopBar">
+    <div class="top-bar-left">
+        <img src="Logo.png" alt="EduFiola" class="top-bar-logo" onerror="this.src='Logo.JPG'; this.onerror=null;">
+        <span class="top-bar-title"><span class="edu">Edu</span><span class="fiola">Fiola</span></span>
+    </div>
+    <img src="Bell.png" alt="Powiadomienia" class="top-bar-bell" onerror="this.src='Bell.jpg'; this.onerror=null;">
+</div>
+
+<div class="main-content" id="glownaStrona">
+    <div class="hero-text">
+        <div class="hero-line1">Znajdź swojego</div>
+        <div class="hero-line2">Korepetytora</div>
+        <div class="hero-description">Przygotuj się do matury, egzaminów szkolnych lub popraw swoją wiedzę</div>
+    </div>
+
+    <div class="carousel-container" id="karuzelaKontener">
+        <button class="carousel-arrow left" onclick="poprzedniSlajd()">‹</button>
+        <button class="carousel-arrow right" onclick="nastepnySlajd()">›</button>
+        <div class="carousel-track" id="karuzelaSciezka">
+            <div class="carousel-slide">Widget 1</div>
+            <div class="carousel-slide">Widget 2</div>
+            <div class="carousel-slide">Widget 3</div>
+        </div>
+    </div>
+    
+    <div class="carousel-dots" id="kropkiKaruzeli">
+        <div class="carousel-dot aktywna" onclick="przejdzDoSlajdu(0)"></div>
+        <div class="carousel-dot" onclick="przejdzDoSlajdu(1)"></div>
+        <div class="carousel-dot" onclick="przejdzDoSlajdu(2)"></div>
+    </div>
+
+    <div class="filter-row">
+        <button class="filter-btn">Matematyka ▾</button>
+        <button class="filter-btn">do 80 zł ▾</button>
+        <button class="filter-btn">Online ▾</button>
+        <div class="filter-icon" onclick="otworzFiltry()">
+            <img src="Filter.jpg" alt="Filtry" onerror="this.style.display='none'">
+        </div>
+    </div>
+
+    <div class="results-bar">
+        <div class="results-count">Znaleziono <span>0</span> korepetytorów</div>
+        <button class="sort-btn">Najlepsi ▾</button>
+    </div>
+
+    <div class="korepetytor-card">
+        <img src="Tutor.jpg" alt="Anna Petrovna" class="korepetytor-photo" onerror="this.style.background='#a5d6a7'; this.style.minWidth='100px';">
+        <div class="korepetytor-info">
+            <div>
+                <div class="korepetytor-name">Anna Petrovna</div>
+                <div class="korepetytor-subject">Matematyka</div>
+                <div class="korepetytor-city">г. Гданьск</div>
+                <div class="korepetytor-rating">
+                    <span class="star">★</span> <span class="rating-number">4,9</span> <span class="rating-reviews">(127 opinii)</span>
+                </div>
+            </div>
+        </div>
+        <div class="korepetytor-price-box">
+            <div class="price-amount">60 zł</div>
+            <div class="price-duration">za 60 minut</div>
+            <button class="contact-btn">Skontaktuj się</button>
+        </div>
+    </div>
+</div>
+
+<div class="bottom-bar" id="dolnyPasek">
+    <div class="bottom-bar-item aktywny"><img src="Search.png" onerror="this.style.background='#6b3fa0';this.style.width='24px';this.style.height='24px';this.style.borderRadius='4px';"><span>Szukaj</span></div>
+    <div class="bottom-bar-item"><img src="Favorites.png" onerror="this.style.background='#6b3fa0';this.style.width='24px';this.style.height='24px';this.style.borderRadius='4px';"><span>Ulubione</span></div>
+    <div class="bottom-bar-item"><img src="Chats.jpg" onerror="this.style.background='#6b3fa0';this.style.width='24px';this.style.height='24px';this.style.borderRadius='4px';"><span>Czaty</span></div>
+    <div class="bottom-bar-item"><img src="Profile.png" onerror="this.style.background='#6b3fa0';this.style.width='24px';this.style.height='24px';this.style.borderRadius='4px';"><span>Profil</span></div>
+</div>
+
+<!-- СТРАНИЦА ФИЛЬТРОВ -->
+<div class="filter-top-bar" id="filterTopBar" style="display:none;">
+    <button class="filter-back" onclick="zamknijFiltry()">← Filtry</button>
+    <button class="filter-reset" onclick="resetujFiltry()">Resetuj</button>
+</div>
+
+<div class="filter-page" id="stronaFiltrow">
+    <div class="filter-page-content">
+        <div class="filter-frame">
+            <div class="filter-label">Przedmiot</div>
+            <div class="filter-select-box" onclick="przelaczDropdown('przedmiotDropdown')">
+                <div class="filter-select-left">
+                    <img src="Icon.png" alt="" onerror="this.style.display='none'">
+                    <span id="wybranyPrzedmiot">Matematyka</span>
+                </div>
+                <span class="filter-select-arrow">▾</span>
+            </div>
+            <div class="filter-dropdown" id="przedmiotDropdown">
+                <div class="filter-dropdown-item" onclick="wybierzPrzedmiot('Matematyka')"><img src="Icon.png" onerror="this.style.display='none'">Matematyka</div>
+                <div class="filter-dropdown-item" onclick="wybierzPrzedmiot('Fizyka')"><img src="Icon.png" onerror="this.style.display='none'">Fizyka</div>
+                <div class="filter-dropdown-item" onclick="wybierzPrzedmiot('Chemia')"><img src="Icon.png" onerror="this.style.display='none'">Chemia</div>
+                <div class="filter-dropdown-item" onclick="wybierzPrzedmiot('Biologia')"><img src="Icon.png" onerror="this.style.display='none'">Biologia</div>
+                <div class="filter-dropdown-item" onclick="wybierzPrzedmiot('Język polski')"><img src="Icon.png" onerror="this.style.display='none'">Język polski</div>
+                <div class="filter-dropdown-item" onclick="wybierzPrzedmiot('Język angielski')"><img src="Icon.png" onerror="this.style.display='none'">Język angielski</div>
+            </div>
+        </div>
+
+        <div class="filter-frame">
+            <div class="filter-label">Cena za zajęcie</div>
+            <div class="price-range-display">
+                <span>Od <span id="cenaOdVal">0</span> zł</span>
+                <span>Do <span id="cenaDoVal">200</span> zł</span>
+            </div>
+            <div class="range-slider-container" id="rangeSliderContainer">
+                <div class="range-slider-track"></div>
+                <div class="range-slider-fill" id="rangeFill" style="left:0%;width:100%;"></div>
+                <div class="range-slider-thumb" id="thumbOd" style="left:0%;"></div>
+                <div class="range-slider-thumb" id="thumbDo" style="left:100%;"></div>
+            </div>
+            <div class="price-presets">
+                <button class="price-preset-btn aktywny" onclick="ustawPreset('wlasy')">Własny wybór</button>
+                <button class="price-preset-btn" onclick="ustawPreset('do60')">Do 60 zł</button>
+                <button class="price-preset-btn" onclick="ustawPreset('do100')">Do 100 zł</button>
+                <button class="price-preset-btn" onclick="ustawPreset('powyzej100')">Powyżej 100 zł</button>
+            </div>
+        </div>
+
+        <div class="filter-frame">
+            <div class="filter-label">Tryb zajęć</div>
+            <div class="mode-buttons">
+                <button class="mode-btn" onclick="wybierzTryb('online', this)"><img src="Icon1.png" onerror="this.style.display='none'">Online</button>
+                <button class="mode-btn" onclick="wybierzTryb('stacjonarnie', this)"><img src="Icon2.png" onerror="this.style.display='none'">Stacjonarnie</button>
+                <button class="mode-btn aktywny" onclick="wybierzTryb('dowolnie', this)"><img src="Icon3.png" onerror="this.style.display='none'">Dowolnie</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Карусель
+    let aktualnySlajd = 0, autoPrzewijanie;
+    function aktualizujKaruzele() {
+        const s = document.getElementById('karuzelaSciezka');
+        if(s) s.style.transform = `translateX(-${aktualnySlajd*100}%)`;
+        document.querySelectorAll('.carousel-dot').forEach((k,i)=>k.classList.toggle('aktywna',i===aktualnySlajd));
+    }
+    function przejdzDoSlajdu(i){aktualnySlajd=i;aktualizujKaruzele();resetujAutoPrzewijanie();}
+    function nastepnySlajd(){aktualnySlajd=(aktualnySlajd+1)%3;aktualizujKaruzele();resetujAutoPrzewijanie();}
+    function poprzedniSlajd(){aktualnySlajd=(aktualnySlajd-1+3)%3;aktualizujKaruzele();resetujAutoPrzewijanie();}
+    function uruchomAutoPrzewijanie(){autoPrzewijanie=setInterval(nastepnySlajd,3000);}
+    function resetujAutoPrzewijanie(){clearInterval(autoPrzewijanie);uruchomAutoPrzewijanie();}
+    
+    // Переключение страниц
+    function otworzFiltry(){
+        document.getElementById('stronaFiltrow').classList.add('aktywna');
+        document.getElementById('glownyTopBar').style.display='none';
+        document.getElementById('filterTopBar').style.display='flex';
+        document.getElementById('dolnyPasek').style.display='none';
+    }
+    function zamknijFiltry(){
+        document.getElementById('stronaFiltrow').classList.remove('aktywna');
+        document.getElementById('glownyTopBar').style.display='flex';
+        document.getElementById('filterTopBar').style.display='none';
+        document.getElementById('dolnyPasek').style.display='flex';
+    }
+    function resetujFiltry(){
+        wybierzPrzedmiot('Matematyka');
+        ustawPreset('wlasy');
+        document.getElementById('thumbOd').style.left='0%';
+        document.getElementById('thumbDo').style.left='100%';
+        aktualizujWypelnienie();
+    }
+    
+    // Выпадающий список предметов
+    function przelaczDropdown(id){document.getElementById(id).classList.toggle('otwarty');}
+    function wybierzPrzedmiot(p){
+        document.getElementById('wybranyPrzedmiot').innerText=p;
+        document.getElementById('przedmiotDropdown').classList.remove('otwarty');
+    }
+    
+    // Ползунок цены
+    let dragging = null;
+    const minVal = 0, maxVal = 200;
+    
+    function aktualizujWypelnienie(){
+        const odL = parseFloat(document.getElementById('thumbOd').style.left) || 0;
+        const doL = parseFloat(document.getElementById('thumbDo').style.left) || 100;
+        document.getElementById('rangeFill').style.left = odL + '%';
+        document.getElementById('rangeFill').style.width = (doL - odL) + '%';
+        const odV = Math.round(minVal + (maxVal-minVal)*odL/100);
+        const doV = Math.round(minVal + (maxVal-minVal)*doL/100);
+        document.getElementById('cenaOdVal').innerText = odV;
+        document.getElementById('cenaDoVal').innerText = doV;
+    }
+    
+    function getPercentFromEvent(e){
+        const rect = document.getElementById('rangeSliderContainer').getBoundingClientRect();
+        const x = (e.touches?e.touches[0].clientX:e.clientX) - rect.left;
+        return Math.max(0, Math.min(100, (x/rect.width)*100));
+    }
+    
+    document.getElementById('thumbOd').addEventListener('mousedown',()=>dragging='od');
+    document.getElementById('thumbDo').addEventListener('mousedown',()=>dragging='do');
+    document.getElementById('thumbOd').addEventListener('touchstart',()=>dragging='od');
+    document.getElementById('thumbDo').addEventListener('touchstart',()=>dragging='do');
+    
+    document.addEventListener('mousemove',(e)=>{
+        if(!dragging) return;
+        const p = getPercentFromEvent(e);
+        if(dragging==='od' && p < parseFloat(document.getElementById('thumbDo').style.left)){
+            document.getElementById('thumbOd').style.left = p + '%';
+            aktualizujWypelnienie(); ustawPreset('wlasy');
+        } else if(dragging==='do' && p > parseFloat(document.getElementById('thumbOd').style.left)){
+            document.getElementById('thumbDo').style.left = p + '%';
+            aktualizujWypelnienie(); ustawPreset('wlasy');
+        }
+    });
+    
+    document.addEventListener('touchmove',(e)=>{
+        if(!dragging) return;
+        const p = getPercentFromEvent(e);
+        if(dragging==='od' && p < parseFloat(document.getElementById('thumbDo').style.left)){
+            document.getElementById('thumbOd').style.left = p + '%';
+            aktualizujWypelnienie(); ustawPreset('wlasy');
+        } else if(dragging==='do' && p > parseFloat(document.getElementById('thumbOd').style.left)){
+            document.getElementById('thumbDo').style.left = p + '%';
+            aktualizujWypelnienie(); ustawPreset('wlasy');
+        }
+    });
+    
+    document.addEventListener('mouseup',()=>dragging=null);
+    document.addEventListener('touchend',()=>dragging=null);
+    
+    function ustawPreset(preset){
+        document.querySelectorAll('.price-preset-btn').forEach(b=>b.classList.remove('aktywny'));
+        if(preset==='do60'){
+            document.getElementById('thumbOd').style.left='0%';
+            document.getElementById('thumbDo').style.left='30%';
+            document.querySelectorAll('.price-preset-btn')[1].classList.add('aktywny');
+        } else if(preset==='do100'){
+            document.getElementById('thumbOd').style.left='0%';
+            document.getElementById('thumbDo').style.left='50%';
+            document.querySelectorAll('.price-preset-btn')[2].classList.add('aktywny');
+        } else if(preset==='powyzej100'){
+            document.getElementById('thumbOd').style.left='50%';
+            document.getElementById('thumbDo').style.left='100%';
+            document.querySelectorAll('.price-preset-btn')[3].classList.add('aktywny');
+        } else {
+            document.querySelectorAll('.price-preset-btn')[0].classList.add('aktywny');
+        }
+        aktualizujWypelnienie();
+    }
+    
+    function wybierzTryb(tryb, btn){
+        document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('aktywny'));
+        btn.classList.add('aktywny');
+    }
+    
+    // Нижнее меню
+    document.querySelectorAll('.bottom-bar-item').forEach(item=>{
+        item.addEventListener('click',function(){
+            document.querySelectorAll('.bottom-bar-item').forEach(i=>i.classList.remove('aktywny'));
+            this.classList.add('aktywny');
+        });
+    });
+    
+    uruchomAutoPrzewijanie();
+</script>
+</body>
+</html>
